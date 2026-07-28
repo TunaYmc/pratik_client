@@ -38,7 +38,11 @@ func main() {
 		log.Fatalf("Failed to get hostname: %v", err)
 	}
 
-	serverURL := "ws://localhost:3000/agent" // Update with Coolify URL
+	serverURL := os.Getenv("PRATIK_BACKEND_URL")
+	if serverURL == "" {
+		serverURL = "ws://localhost:3001/agent"
+	}
+	
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		log.Fatal(err)
