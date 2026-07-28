@@ -1,0 +1,21 @@
+{
+  "name": "nanodata-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:backend": "npm run start:dev --workspace=apps/backend",
+    "dev:helper": "npm run start --workspace=apps/helper",
+    "dev": "node node_modules/concurrently/dist/bin/concurrently.js --kill-others-on-fail -n frontend,backend,helper -c cyan,magenta,yellow \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:helper\"",
+    "build:backend": "npm run build --workspace=apps/backend",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "build": "npm run build:backend && npm run build:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  password_hash   String
+  role            String            @default("user") // "admin", "manager", or "user"
+  createdAt       DateTime          @default(now())
+  
+  managerId       Int?
+  manager         User?             @relation("UserManager", fields: [managerId], references: [id])
+  subordinates    User[]            @relation("UserManager")
+
+  assignments     UserAssignment[]
+  createdTags     Tag[]             @relation("ManagerTags")
+  userTags        UserTag[]
+  rdpSettings     String?           @default("{}")
+
+  auditActions    AuditLog[]        @relation("AuditActor")
+  auditTargets    AuditLog[]        @relation("AuditTarget")
+}
+
+model WindowsAccount {
+  id               Int               @id @default(autoincrement())
+  windows_username String
+  host             String
+  description      String?
+  
+  assignments      UserAssignment[]
+}
+
+model UserAssignment {
+  id               Int            @id @default(autoincrement())
+  userId           Int
+  windowsAccountId Int
+  expiresAt        DateTime?
+
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  windowsAccount   WindowsAccount @relation(fields: [windowsAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, windowsAccountId])
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String
+  color     String?
+  managerId Int
+
+  manager   User      @relation("ManagerTags", fields: [managerId], references: [id], onDelete: Cascade)
+  userTags  UserTag[]
+}
+
+model UserTag {
+  id     Int @id @default(autoincrement())
+  userId Int
+  tagId  Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tagId])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  actionId  String
+  actorId   Int
+  targetId  Int?
+  metadata  String?  // JSON stringified
+  createdAt DateTime @default(now())
+
+  actor     User     @relation("AuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+  target    User?    @relation("AuditTarget", fields: [targetId], references: [id], onDelete: Cascade)
+}
+
+model SessionHost {
+  id           Int      @id @default(autoincrement())
+  hostname     String   @unique
+  ipAddress    String?
+  status       String   @default("offline") // online, offline
+  cpuUsage     Float?
+  ramUsage     Float?
+  lastSeen     DateTime @default(now())
+  createdAt    DateTime @default(now())
+}
+
+model ActiveSession {
+  id           Int      @id @default(autoincrement())
+  host         String
+  username     String
+  sessionname  String
+  sessionId    String
+  state        String
+  idleTime     String
+  logonTime    String
+  isCurrent    Boolean  @default(false)
+  updatedAt    DateTime @default(now()) @updatedAt
+  
+  @@unique([host, sessionId])
+}

@@ -1,0 +1,11 @@
+node_modules
+.DS_Store
+dist
+*.log
+.env
+dev.db
+*.sqlite
+.svelte-kit
+.next
+build
+coverage
