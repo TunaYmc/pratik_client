@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -111,15 +112,14 @@ func sendTelemetry(c *websocket.Conn) {
 }
 
 func sendActiveSessions(c *websocket.Conn) {
-	// Execute 'query user' command
-	cmd := exec.Command("query", "user")
+	cmd := exec.Command("quser")
 	output, err := cmd.Output()
 	
 	sessions := []ActiveSession{}
 
 	if err == nil {
 		lines := strings.Split(string(output), "\n")
-		// Basic parser for Windows 'query user'
+		// Basic parser for Windows 'quser'
 		for i := 1; i < len(lines); i++ {
 			line := strings.TrimSpace(lines[i])
 			if len(line) == 0 {
@@ -131,16 +131,37 @@ func sendActiveSessions(c *websocket.Conn) {
 				line = line[1:]
 			}
 			
-			// Simple whitespace split (can be improved for exact column widths)
 			fields := strings.Fields(line)
-			if len(fields) >= 6 {
+			if len(fields) >= 5 {
+				// Check if sessionname is present or missing (disconnected sessions often miss it)
+				// If fields[1] is a number, it's the ID, meaning sessionname is missing.
+				_, parseErr := strconv.Atoi(fields[1])
+				hasSessionName := (parseErr != nil)
+				
+				var username, sessionname, id, state, idle, logon string
+				username = fields[0]
+				
+				if hasSessionName && len(fields) >= 6 {
+					sessionname = fields[1]
+					id = fields[2]
+					state = fields[3]
+					idle = fields[4]
+					logon = strings.Join(fields[5:], " ")
+				} else {
+					sessionname = ""
+					id = fields[1]
+					state = fields[2]
+					idle = fields[3]
+					logon = strings.Join(fields[4:], " ")
+				}
+
 				sessions = append(sessions, ActiveSession{
-					Username:    fields[0],
-					SessionName: fields[1],
-					ID:          fields[2],
-					State:       fields[3],
-					IdleTime:    fields[4],
-					LogonTime:   strings.Join(fields[5:], " "),
+					Username:    username,
+					SessionName: sessionname,
+					ID:          id,
+					State:       state,
+					IdleTime:    idle,
+					LogonTime:   logon,
 					IsCurrent:   isCurrent,
 				})
 			}

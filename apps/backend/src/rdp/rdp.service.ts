@@ -133,6 +133,14 @@ export class RdpService {
         return sessions;
     }
 
+    async getSessionHosts() {
+        return this.prisma.sessionHost.findMany({
+            orderBy: {
+                lastSeen: 'desc'
+            }
+        });
+    }
+
     async verifyRemoteDesktopGroup(username: string): Promise<boolean> {
         try {
             const { stdout } = await execAsync(

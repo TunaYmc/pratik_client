@@ -27,8 +27,10 @@ export default function Admin() {
     const [totalAuditLogs, setTotalAuditLogs] = useState(0);
 
     const [activeSessions, setActiveSessions] = useState<any[]>([]);
+    const [hosts, setHosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingSessions, setLoadingSessions] = useState(false);
+    const [loadingHosts, setLoadingHosts] = useState(false);
     
     // User role context
     const currentRole = localStorage.getItem('role');
@@ -63,6 +65,7 @@ export default function Admin() {
         if (currentRole === 'manager' || currentRole === 'admin') {
             fetchTags();
             fetchSubordinates();
+            fetchHosts();
         }
     }, [currentRole]);
 
@@ -87,6 +90,19 @@ export default function Admin() {
             alert(t('alert.failedLoadSessions'));
         } finally {
             setLoadingSessions(false);
+        }
+    };
+
+    const fetchHosts = async () => {
+        if (currentRole !== 'admin' && currentRole !== 'manager') return;
+        setLoadingHosts(true);
+        try {
+            const res = await axios.get('/api/admin/hosts', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            setHosts(res.data);
+        } catch {
+            console.error('Failed to load hosts');
+        } finally {
+            setLoadingHosts(false);
         }
     };
 
@@ -642,6 +658,59 @@ export default function Admin() {
                             )}
                         </div>
                     </div>
+                </div>
+                )}
+
+                {/* Connected Servers (Full Width) */}
+                {(currentRole === 'admin' || currentRole === 'manager') && (
+                <div className="mt-8 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-lg font-medium">{t('admin.connectedServers') || 'Bağlı Sunucular'}</h2>
+                        </div>
+                        <button onClick={fetchHosts} className="text-sm px-3 py-1.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-hover)] transition-colors shadow-sm">
+                            {loadingHosts ? t('common.refreshing') : t('common.refresh')}
+                        </button>
+                    </div>
+                    {loadingHosts && hosts.length === 0 ? <p className="text-sm text-[var(--color-text-muted)]">{t('common.loading')}</p> : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm text-[var(--color-text-muted)]">
+                                <thead>
+                                    <tr className="border-b border-[var(--color-border)]">
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">Sunucu Adı</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">IP Adresi</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">Durum</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">CPU</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">RAM</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">Son Görülme</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--color-border)]">
+                                    {hosts.map((h, idx) => {
+                                        const isOnline = h.status === 'online';
+                                        return (
+                                        <tr key={idx} className="hover:bg-[var(--color-surface-hover)]">
+                                            <td className="py-2.5 font-medium text-[var(--color-text)]">{h.hostname}</td>
+                                            <td className="py-2.5">{h.ipAddress || '-'}</td>
+                                            <td className="py-2.5">
+                                                <span className={`px-2 py-0.5 rounded text-xs ${isOnline ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                                                    {isOnline ? 'Online' : 'Offline'}
+                                                </span>
+                                            </td>
+                                            <td className="py-2.5">{h.cpuUsage != null ? `${h.cpuUsage.toFixed(1)}%` : '-'}</td>
+                                            <td className="py-2.5">{h.ramUsage != null ? `${h.ramUsage.toFixed(1)}%` : '-'}</td>
+                                            <td className="py-2.5">{new Date(h.lastSeen).toLocaleString()}</td>
+                                        </tr>
+                                    )})}
+                                    {hosts.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="py-6 text-center italic">Bağlı sunucu bulunamadı.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
                 )}
 

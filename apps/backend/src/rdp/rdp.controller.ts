@@ -72,6 +72,13 @@ export class RdpController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('admin/hosts')
+    async getSessionHosts(@Request() req: any) {
+        if (req.user.role !== 'admin' && req.user.role !== 'manager') throw new ForbiddenException('Admin or Manager access required');
+        return this.rdpService.getSessionHosts();
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get('admin/rdp-group')
     async testRdpGroup(@Request() req: any, @Body() body: { username: string }) {
         if (req.user.role !== 'admin') throw new ForbiddenException();
