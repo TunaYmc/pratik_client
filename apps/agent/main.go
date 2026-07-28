@@ -38,9 +38,10 @@ func main() {
 		log.Fatalf("Failed to get hostname: %v", err)
 	}
 
+	// Default to environment variable for testing, but fallback to hardcoded production URL
 	serverURL := os.Getenv("PRATIK_BACKEND_URL")
 	if serverURL == "" {
-		serverURL = "ws://localhost:3001/agent"
+		serverURL = "wss://api.pratikbulut.com/agent"
 	}
 	
 	u, err := url.Parse(serverURL)
