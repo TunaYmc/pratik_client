@@ -213,47 +213,39 @@ export class RdpService {
             const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
             const settings = JSON.parse((user as any)?.rdpSettings || '{}');
 
-            // Map frontend boolean settings to RDP configuration strings
-            const additionalConfig = [
-                settings.multiMonitor ? 'use multimon:i:1' : 'use multimon:i:0',
-                settings.clipboardRedirection ? 'redirectclipboard:i:1' : 'redirectclipboard:i:0',
-                `audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}`,
-                settings.smartSizing ? 'smart sizing:i:1' : 'smart sizing:i:0',
-                settings.printerRedirection ? 'redirectprinters:i:1' : 'redirectprinters:i:0',
-                settings.microphoneRedirection ? 'audiocapturemode:i:1' : 'audiocapturemode:i:0',
-                settings.highResolution
-                    ? 'dynamic resolution:i:1\nallow font smoothing:i:1\nallow desktop composition:i:1\nsession bpp:i:32\nforcehidpioptimizations:i:1\ndesktopwidth:i:0\ndesktopheight:i:0'
-                    : 'dynamic resolution:i:0'
-            ].join('\n');
+            // Settings are applied directly in the RDP template below
 
-            const isCompute = account.host.includes('compute');
+            const isCompute = account.host.toLowerCase().includes('compute');
             const loadBalanceInfo = isCompute
-                ? 'loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.pb_compute'
-                : 'loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.pb_office';
+                ? 'loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.PB_Compute'
+                : 'loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.pb-office';
 
-            return `screen mode id:i:2
-authentication level:i:2
-negotiate security layer:i:1
-compression:i:1
-displayconnectionbar:i:1
-connection type:i:7
-networkautodetect:i:1
-bandwidthautodetect:i:1
-enablecredsspsupport:i:1
+            return `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}
+redirectprinters:i:${settings.printerRedirection ? 1 : 0}
+redirectcomports:i:1
+redirectsmartcards:i:1
+devicestoredirect:s:*
+drivestoredirect:s:*
+redirectdrives:i:1
+session bpp:i:32
+prompt for credentials on client:i:1
+server port:i:3389
+allow font smoothing:i:1
 promptcredentialonce:i:1
-gatewayhostname:s:rds.pratikbulut.com
 gatewayusagemethod:i:2
-gatewaycredentialssource:i:0
 gatewayprofileusagemethod:i:1
-prompt for credentials:i:1
-gatewayusername:s:${account.windows_username}@pratikbulut.local
-username:s:${account.windows_username}@pratikbulut.local
-full address:s:pb-win-mgmt.pratikbulut.local
-disable connection sharing:i:1
+gatewaycredentialssource:i:0
+full address:s:PB-WIN-MGMT.PRATIKBULUT.LOCAL
+gatewayhostname:s:rds.pratikbulut.com
 workspace id:s:pb-win-mgmt.pratikbulut.local
 use redirection server name:i:1
 ${loadBalanceInfo}
-${additionalConfig}
+use multimon:i:${settings.multiMonitor ? 1 : 0}
+audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}
+audiocapturemode:i:${settings.microphoneRedirection ? 1 : 0}
+${settings.smartSizing ? 'smart sizing:i:1' : 'smart sizing:i:0'}
+${settings.highResolution ? 'dynamic resolution:i:1\nforcehidpioptimizations:i:1\ndesktopwidth:i:0\ndesktopheight:i:0' : 'dynamic resolution:i:0'}
+username:s:${account.windows_username}@pratikbulut.local
 `;
         } catch (e) {
             throw new ForbiddenException('Invalid or expired RDP connection token');
