@@ -215,18 +215,14 @@ export class RdpService {
 
             // Settings are applied directly in the RDP template below
 
-            const isCompute = account.host.toLowerCase().includes('compute');
-            const loadBalanceInfo = isCompute
-                ? 'loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.PB_Compute'
-                : 'loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.pb-office';
+            const loadBalanceInfo = `loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.${account.host.toLowerCase()}`;
 
             return `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}
 redirectprinters:i:${settings.printerRedirection ? 1 : 0}
-redirectcomports:i:1
-redirectsmartcards:i:1
-devicestoredirect:s:*
-drivestoredirect:s:*
-redirectdrives:i:1
+redirectcomports:i:${settings.comPortRedirection ? 1 : 0}
+redirectsmartcards:i:${settings.smartCardRedirection ? 1 : 0}
+redirectdrives:i:${settings.driveRedirection ? 1 : 0}
+${settings.driveRedirection ? 'drivestoredirect:s:*\ndevicestoredirect:s:*' : ''}
 session bpp:i:32
 prompt for credentials on client:i:1
 server port:i:3389
