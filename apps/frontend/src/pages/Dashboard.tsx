@@ -120,6 +120,18 @@ export default function Dashboard() {
         }
     };
 
+    const handleDownloadTxt = async (accountId: number) => {
+        try {
+            const res = await axios.post('/api/rdp/generate', { accountId }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            const connectionToken = res.data.token;
+            window.location.href = `/api/rdp/download-txt?token=${connectionToken}`;
+        } catch (e) {
+            alert('Failed to download debug TXT');
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -213,12 +225,21 @@ export default function Dashboard() {
                                     )}
                                 </div>
 
-                                <button
-                                    onClick={() => handleConnect(session.id)}
-                                    className="w-full flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white font-medium py-2.5 rounded-lg transition-all duration-200 relative z-10"
-                                >
-                                    <Play size={16} className="fill-current" /> {t('dashboard.connect')}
-                                </button>
+                                <div className="flex gap-2 relative z-10 w-full mt-auto">
+                                    <button
+                                        onClick={() => handleConnect(session.id)}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white font-medium py-2.5 rounded-lg transition-all duration-200"
+                                    >
+                                        <Play size={16} className="fill-current" /> {t('dashboard.connect')}
+                                    </button>
+                                    <button
+                                        onClick={() => handleDownloadTxt(session.id)}
+                                        className="flex-shrink-0 flex items-center justify-center bg-gray-500/10 hover:bg-gray-500 text-gray-500 hover:text-white font-medium px-4 py-2.5 rounded-lg transition-all duration-200"
+                                        title="Debug TXT İndir"
+                                    >
+                                        TXT
+                                    </button>
+                                </div>
                             </div>
                         )})}
 
