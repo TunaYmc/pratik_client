@@ -105,7 +105,7 @@ export class RdpController {
     @Get('rdp/download-txt')
     async downloadRdpFileTxt(@Query('token') token: string, @Res() res: any) {
         const content = await this.rdpService.generateRdpContent(token);
-        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', 'attachment; filename="connection.txt"');
         res.send(content);
     }
