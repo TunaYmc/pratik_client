@@ -111,6 +111,35 @@ export const translations: Translations = {
     'admin.offline': { en: 'Offline', tr: 'Çevrimdışı' },
     'admin.failedLoadHostStats': { en: 'Failed to load host statistics', tr: 'Sunucu istatistikleri yüklenemedi' },
     'admin.noAuditLogs': { en: 'No audit logs found', tr: 'Denetim izi bulunamadı' },
+    
+    // Pricing Settings
+    'admin.pricingSettings': { en: 'Pricing Settings', tr: 'Fiyat Ayarları' },
+    'admin.baseOfficeEur': { en: 'Office Server Base Price (EUR)', tr: 'Office Sunucu Taban Fiyatı (EUR)' },
+    'admin.baseComputeEur': { en: 'Compute Server Base Price (EUR)', tr: 'Compute Sunucu Taban Fiyatı (EUR)' },
+    'admin.baseStorageEur': { en: 'Storage Price per TB (EUR)', tr: 'TB Başına Disk Fiyatı (EUR)' },
+    'common.save': { en: 'Save', tr: 'Kaydet' },
+    'common.success': { en: 'Success', tr: 'Başarılı' },
+
+    // Onboarding
+    'admin.onboarding': { en: 'Company Onboarding', tr: 'Şirket Ekle' },
+    'onboarding.step1': { en: 'Company Details', tr: 'Şirket Bilgileri' },
+    'onboarding.step2': { en: 'Employees & Server', tr: 'Çalışanlar & Sunucu' },
+    'onboarding.step3': { en: 'Storage', tr: 'Depolama Alanı' },
+    'onboarding.step4': { en: 'Pricing', tr: 'Fiyatlandırma' },
+    'onboarding.displayName': { en: 'Display Name', tr: 'Görünen Ad (Display Name)' },
+    'onboarding.internalName': { en: 'Internal Name (Scripts)', tr: 'İç İsim (Sistem / Script)' },
+    'onboarding.fullName': { en: 'Full Name', tr: 'Ad Soyad' },
+    'onboarding.addEmployee': { en: 'Add Employee', tr: 'Çalışan Ekle' },
+    'onboarding.winUsername': { en: 'Windows Username', tr: 'Windows Kullanıcı Adı' },
+    'onboarding.targetHost': { en: 'Target Server', tr: 'Hedef Sunucu' },
+    'onboarding.diskQuota': { en: 'Disk Quota (TB)', tr: 'Disk Kotası (TB)' },
+    'onboarding.commitment': { en: 'Commitment (Months)', tr: 'Taahhüt Süresi (Ay)' },
+    'onboarding.discount': { en: 'Discount (%)', tr: 'İndirim (%)' },
+    'onboarding.marketing': { en: 'Marketing Margin (%)', tr: 'Pazarlama Payı (%)' },
+    'onboarding.netPrice': { en: 'Net Price', tr: 'Net Fiyat' },
+    'onboarding.grossPrice': { en: 'Gross Price', tr: 'Brüt Fiyat' },
+    'onboarding.submit': { en: 'Complete Setup', tr: 'Kurulumu Başlat' },
+    'onboarding.defaultPassword': { en: 'Default Password', tr: 'Varsayılan Şifre' },
 
     // ===== Alerts (confirm/alert messages) =====
     'alert.failedLoadSessions': { en: 'Failed to load active RDP sessions', tr: 'Aktif RDP oturumları yüklenemedi' },

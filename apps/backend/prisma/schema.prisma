@@ -109,3 +109,38 @@ model ActiveSession {
   
   @@unique([host, sessionId])
 }
+
+model SystemSettings {
+  key   String @id
+  value String
+}
+
+model Company {
+  id               Int      @id @default(autoincrement())
+  displayName      String
+  internalName     String   @unique
+  targetHost       String
+  diskQuotaTB      Float
+  baseOfficeEur    Float
+  baseComputeEur   Float
+  baseStorageEur   Float
+  commitmentMonths Int
+  discountPct      Float
+  marketingPct     Float
+  netPriceEur      Float
+  status           String   @default("pending") // pending, active, failed
+  defaultPassword  String   @default("PratikBulut@2026")
+  createdAt        DateTime @default(now())
+
+  employees        CompanyEmployee[]
+}
+
+model CompanyEmployee {
+  id              Int      @id @default(autoincrement())
+  companyId       Int
+  fullName        String
+  windowsUsername String
+  status          String   @default("pending") // pending, active, failed
+
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}

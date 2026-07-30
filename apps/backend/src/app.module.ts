@@ -7,6 +7,9 @@ import { RdpModule } from './rdp/rdp.module';
 import { SystemModule } from './system/system.module';
 import { AuditModule } from './audit/audit.module';
 import { AgentModule } from './agent/agent.module';
+import { BrokerModule } from './broker/broker.module';
+import { SettingsModule } from './settings/settings.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -17,7 +20,10 @@ import { AgentModule } from './agent/agent.module';
     RdpModule, 
     SystemModule,
     AuditModule,
-    AgentModule
+    AgentModule,
+    BrokerModule,
+    SettingsModule,
+    OnboardingModule
   ],
   controllers: [],
   providers: [],
