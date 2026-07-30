@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { BrokerGateway } from '../broker/broker.gateway';
 import axios from 'axios';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class OnboardingService {
@@ -60,13 +61,16 @@ export class OnboardingService {
     // Create User accounts, WindowsAccounts, and Assignments
     let firstManagerId: number | null = null;
     
+    // Hash the password for web login
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
     // 1. First pass: create all managers
     for (const emp of company.employees) {
       if (emp.role === 'manager') {
         const user = await this.prisma.user.create({
           data: {
             email: `${emp.windowsUsername}@${internalName}.local`,
-            password_hash: defaultPassword, // Warning: In production, hash this password!
+            password_hash: hashedPassword,
             role: 'manager',
             companyId: company.id,
             rdpSettings: JSON.stringify({ multiMonitor: false, highResolution: true, clipboardRedirection: true, driveRedirection: true, audioMode: 0 })
@@ -97,7 +101,7 @@ export class OnboardingService {
         const user = await this.prisma.user.create({
           data: {
             email: `${emp.windowsUsername}@${internalName}.local`,
-            password_hash: defaultPassword, // Warning: In production, hash this password!
+            password_hash: hashedPassword,
             role: 'user',
             companyId: company.id,
             managerId: firstManagerId, // Link to the first manager found
@@ -217,11 +221,13 @@ export class OnboardingService {
       where: { companyId, role: 'manager' }
     });
 
+    const hashedPassword = await bcrypt.hash(company.defaultPassword, 10);
+
     // Create User, WindowsAccount, Assignment
     const user = await this.prisma.user.create({
       data: {
         email: `${windowsUsername}@${company.internalName}.local`,
-        password_hash: company.defaultPassword,
+        password_hash: hashedPassword,
         role: role,
         companyId,
         managerId: role === 'user' ? manager?.id : undefined,
