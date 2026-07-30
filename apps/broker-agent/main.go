@@ -22,6 +22,7 @@ type Message struct {
 type OnboardData struct {
 	CompanyId       int      `json:"companyId"`
 	CompanyName     string   `json:"companyName"`
+	TargetHost      string   `json:"targetHost"`
 	UserCount       int      `json:"userCount"`
 	Users           []string `json:"users"`
 	QuotaTB         float64  `json:"quotaTB"`
@@ -41,43 +42,42 @@ func main() {
 
 	log.Printf("Broker Agent connecting to %s", u.String())
 
-	var c *websocket.Conn
 	for {
-		conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
 			log.Printf("Dial error: %v, retrying in 5 seconds...", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		c = conn
-		break
-	}
-	defer c.Close()
 
-	log.Println("Connected to Broker Gateway.")
+		log.Println("Connected to Broker Gateway.")
 
-	for {
-		_, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read err:", err)
-			break
-		}
+		for {
+			_, message, err := c.ReadMessage()
+			if err != nil {
+				log.Println("read err:", err)
+				break
+			}
 
-		var msg Message
-		if err := json.Unmarshal(message, &msg); err != nil {
-			log.Printf("Failed to unmarshal message: %v", err)
-			continue
-		}
-
-		if msg.Event == "onboard_company" {
-			var data OnboardData
-			if err := json.Unmarshal(msg.Data, &data); err != nil {
-				log.Printf("Failed to unmarshal onboard data: %v", err)
+			var msg Message
+			if err := json.Unmarshal(message, &msg); err != nil {
+				log.Printf("Failed to unmarshal message: %v", err)
 				continue
 			}
 
-			handleOnboardCompany(c, data)
+			if msg.Event == "onboard_company" {
+				var data OnboardData
+				if err := json.Unmarshal(msg.Data, &data); err != nil {
+					log.Printf("Failed to unmarshal onboard data: %v", err)
+					continue
+				}
+
+				handleOnboardCompany(c, data)
+			}
 		}
+		c.Close()
+		log.Println("Connection lost, reconnecting in 5 seconds...")
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -86,6 +86,8 @@ func handleOnboardCompany(c *websocket.Conn, data OnboardData) {
 
 	scriptContent := generatePowershellScript(data)
 	scriptPath := filepath.Join(os.TempDir(), fmt.Sprintf("onboard_%s.ps1", data.CompanyName))
+
+	log.Printf("Generated Script for %s:\n%s", data.CompanyName, scriptContent)
 
 	if err := ioutil.WriteFile(scriptPath, []byte(scriptContent), 0644); err != nil {
 		sendResult(c, data.CompanyId, false, err.Error())
@@ -162,7 +164,7 @@ foreach ($User in $UsersList) {
 }
 
 New-Item -Path $YeniKlasorYolu -ItemType Directory -Force | Out-Null
-icacls $YeniKlasorYolu /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" /grant:r "Administrators:(OI)(CI)F" /grant:r "pratikbulut\$GrupAdi:(OI)(CI)M" /T /C /Q | Out-Null
+icacls $YeniKlasorYolu /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" /grant:r "Administrators:(OI)(CI)F" /grant:r "pratikbulut\${GrupAdi}:(OI)(CI)M" /T /C /Q | Out-Null
 
 Set-FsrmQuota -Path $YeniKlasorYolu -Size $KotaBoyutu
 
