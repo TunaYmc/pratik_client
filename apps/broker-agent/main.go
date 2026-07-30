@@ -202,7 +202,7 @@ foreach ($User in $UsersList) {
 New-Item -Path $YeniKlasorYolu -ItemType Directory -Force | Out-Null
 icacls $YeniKlasorYolu /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" /grant:r "Administrators:(OI)(CI)F" /grant:r "pratikbulut\${GrupAdi}:(OI)(CI)M" /T /C /Q | Out-Null
 
-Set-FsrmQuota -Path $YeniKlasorYolu -Size $KotaBoyutu
+New-FsrmQuota -Path $YeniKlasorYolu -Size $KotaBoyutu
 
 Write-Host ">>> İŞLEM TAMAMLANDI! $SirketAdi sisteme başarıyla eklendi." -ForegroundColor Green
 `, data.CompanyName, data.UserCount, data.QuotaTB, data.DefaultPassword, usersArray)
