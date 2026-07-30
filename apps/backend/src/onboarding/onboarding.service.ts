@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { BrokerGateway } from '../broker/broker.gateway';
 import axios from 'axios';
@@ -27,6 +27,14 @@ export class OnboardingService {
       commitmentMonths, discountPct, marketingPct, netPriceEur,
       defaultPassword, employees
     } = data;
+
+    // Check if company exists
+    const existing = await this.prisma.company.findUnique({
+      where: { internalName }
+    });
+    if (existing) {
+      throw new BadRequestException(`Company with internal name ${internalName} already exists`);
+    }
 
     // Create Company
     const company = await this.prisma.company.create({

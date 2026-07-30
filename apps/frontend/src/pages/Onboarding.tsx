@@ -140,8 +140,10 @@ const Onboarding: React.FC = () => {
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
             setDisplayName(''); setInternalName(''); setEmployees([]);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            const msg = e.response?.data?.message || e.message;
+            alert(`Hata: ${msg}`);
         } finally {
             setLoading(false);
         }
