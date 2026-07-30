@@ -112,7 +112,8 @@ export default function Dashboard() {
             const connectionToken = res.data.token;
 
             // 2. Trigger the custom protocol (Helper client catches this)
-            const apiHost = window.location.origin; // Use the current web frontend's origin
+            // Use the API URL from environment, fallback to origin if not set
+            const apiHost = import.meta.env.VITE_API_URL || window.location.origin;
             const url = `nanodata://connect?token=${connectionToken}&apiHost=${encodeURIComponent(apiHost)}`;
             window.location.href = url;
         } catch (e) {
