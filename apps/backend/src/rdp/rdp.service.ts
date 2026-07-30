@@ -215,7 +215,7 @@ export class RdpService {
 
             // Settings are applied directly in the RDP template below
 
-            const loadBalanceInfo = `loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.${account.host.toLowerCase()}`;
+            const loadBalanceInfo = `loadbalanceinfo:s:`;
 
             return `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}
 redirectprinters:i:${settings.printerRedirection ? 1 : 0}
@@ -231,7 +231,7 @@ promptcredentialonce:i:1
 gatewayusagemethod:i:2
 gatewayprofileusagemethod:i:1
 gatewaycredentialssource:i:0
-full address:s:PB-WIN-MGMT.PRATIKBULUT.LOCAL
+full address:s:${account.host.toLowerCase()}.pratikbulut.local
 gatewayhostname:s:rds.pratikbulut.com
 workspace id:s:pb-win-mgmt.pratikbulut.local
 use redirection server name:i:1
@@ -241,6 +241,7 @@ audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}
 audiocapturemode:i:${settings.microphoneRedirection ? 1 : 0}
 ${settings.smartSizing ? 'smart sizing:i:1' : 'smart sizing:i:0'}
 ${settings.highResolution ? 'dynamic resolution:i:1\nforcehidpioptimizations:i:1\ndesktopwidth:i:0\ndesktopheight:i:0' : 'dynamic resolution:i:0'}
+gatewayusername:s:${account.windows_username}@pratikbulut.local
 username:s:${account.windows_username}@pratikbulut.local
 `;
         } catch (e) {

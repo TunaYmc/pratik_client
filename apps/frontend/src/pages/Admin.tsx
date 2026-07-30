@@ -549,9 +549,10 @@ export default function Admin() {
                                     <div>
                                         <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('admin.targetHost')}</label>
                                         <select required value={host} onChange={e => setHost(e.target.value)} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)]">
-                                            <option value="">{t('admin.selectServerType') || 'Sunucu Tipi Seçin'}</option>
-                                            <option value="pb-compute-node.pratikbulut.local">Compute Server</option>
-                                            <option value="pb-office-node.pratikbulut.local">Office Server</option>
+                                            <option value="">{t('admin.selectServerType') || 'Sunucu Seçin'}</option>
+                                            {hosts.map((h: any) => (
+                                                <option key={h.id} value={h.hostname}>{h.hostname}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     {/* Initial Password input temporarily disabled
