@@ -137,7 +137,7 @@ Import-Module FileServerResourceManager
 
 $SirketAdi = "%s"
 $KullaniciSayisi = %d
-$KotaBoyutu = "%vTB"
+$KotaBoyutu = %vTB
 $VarsayilanSifre = "%s"
 
 $OrtakDiskHarfi = "Z:" 

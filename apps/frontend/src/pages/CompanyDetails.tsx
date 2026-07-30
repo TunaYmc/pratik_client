@@ -34,8 +34,8 @@ export const CompanyDetails: React.FC = () => {
         const fetchData = async () => {
             try {
                 const [compRes, hostsRes] = await Promise.all([
-                    axios.get(`/api/admin/onboarding/companies/${id}`),
-                    axios.get('/api/admin/system/hosts')
+                    axios.get(`/api/admin/onboarding/companies/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+                    axios.get('/api/admin/system/hosts', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
                 ]);
                 setCompany(compRes.data);
                 setHosts(hostsRes.data);
@@ -71,7 +71,9 @@ export const CompanyDetails: React.FC = () => {
                 targetHost: tempTargetHost,
                 role: tempRole
             };
-            const res = await axios.post(`/api/admin/onboarding/companies/${id}/employees`, payload);
+            const res = await axios.post(`/api/admin/onboarding/companies/${id}/employees`, payload, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
             setCompany({ ...company, employees: [...company.employees, res.data] });
             setTempFullName('');
         } catch (err) {
@@ -86,7 +88,9 @@ export const CompanyDetails: React.FC = () => {
         if (!window.confirm("Bu çalışanı ve bağlı olduğu hesabı silmek istediğinize emin misiniz?")) return;
         
         try {
-            await axios.delete(`/api/admin/onboarding/companies/${id}/employees/${employeeId}`);
+            await axios.delete(`/api/admin/onboarding/companies/${id}/employees/${employeeId}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
             setCompany({ ...company, employees: company.employees.filter((e: any) => e.id !== employeeId) });
         } catch (err) {
             console.error(err);

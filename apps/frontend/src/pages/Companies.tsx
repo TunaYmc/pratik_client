@@ -12,7 +12,9 @@ export const Companies: React.FC = () => {
 
     const fetchCompanies = async () => {
         try {
-            const res = await axios.get('/api/admin/onboarding/companies');
+            const res = await axios.get('/api/admin/onboarding/companies', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
             setCompanies(res.data);
         } catch (e) {
             console.error(e);
@@ -29,7 +31,9 @@ export const Companies: React.FC = () => {
         e.stopPropagation();
         if (window.confirm(`${name} şirketini ve tüm kullanıcılarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) {
             try {
-                await axios.delete(`/api/admin/onboarding/companies/${id}`);
+                await axios.delete(`/api/admin/onboarding/companies/${id}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
                 setCompanies(companies.filter(c => c.id !== id));
             } catch (err) {
                 console.error(err);
