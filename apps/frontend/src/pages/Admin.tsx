@@ -28,6 +28,8 @@ export default function Admin() {
 
     const [activeSessions, setActiveSessions] = useState<any[]>([]);
     const [hosts, setHosts] = useState<any[]>([]);
+    const [hostStats, setHostStats] = useState<any[]>([]);
+    const [loadingHostStats, setLoadingHostStats] = useState(false);
     const [loading, setLoading] = useState(true);
     const [loadingSessions, setLoadingSessions] = useState(false);
     const [loadingHosts, setLoadingHosts] = useState(false);
@@ -67,6 +69,9 @@ export default function Admin() {
             fetchSubordinates();
             fetchHosts();
         }
+        if (currentRole === 'admin') {
+            fetchHostStats();
+        }
     }, [currentRole]);
 
     useEffect(() => {
@@ -103,6 +108,19 @@ export default function Admin() {
             console.error('Failed to load hosts');
         } finally {
             setLoadingHosts(false);
+        }
+    };
+
+    const fetchHostStats = async () => {
+        if (currentRole !== 'admin') return;
+        setLoadingHostStats(true);
+        try {
+            const res = await axios.get('/api/admin/host-stats', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            setHostStats(res.data);
+        } catch {
+            console.error('Failed to load host stats');
+        } finally {
+            setLoadingHostStats(false);
         }
     };
 
@@ -601,6 +619,47 @@ export default function Admin() {
                                         {t('admin.createUser')}
                                     </button>
                                 </form>
+                            </div>
+                        )}
+
+                        {/* Server Distribution Chart (Admin Only) */}
+                        {currentRole === 'admin' && (
+                            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 mb-8">
+                                <div className="mb-4">
+                                    <h2 className="text-lg font-medium">{t('admin.serverDistribution')}</h2>
+                                    <p className="text-sm text-[var(--color-text-muted)] mt-1">{t('admin.serverDistributionDesc')}</p>
+                                </div>
+                                
+                                {loadingHostStats ? (
+                                    <p className="text-sm text-[var(--color-text-muted)]">{t('common.loading')}</p>
+                                ) : hostStats.length === 0 ? (
+                                    <p className="text-sm text-[var(--color-text-muted)]">{t('admin.failedLoadHostStats')}</p>
+                                ) : (
+                                    <div className="space-y-4 mt-6">
+                                        {hostStats.map((stat, idx) => {
+                                            const maxCount = Math.max(...hostStats.map(s => s.distinctUsersCount), 1);
+                                            const percent = (stat.distinctUsersCount / maxCount) * 100;
+                                            return (
+                                                <div key={idx} className="flex items-center gap-4">
+                                                    <div className="w-1/3 truncate text-sm font-medium text-[var(--color-text)]" title={stat.host}>
+                                                        {stat.host}
+                                                    </div>
+                                                    <div className="w-2/3 flex items-center gap-3">
+                                                        <div className="flex-1 h-2.5 bg-[var(--color-background)] rounded-full overflow-hidden">
+                                                            <div 
+                                                                className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                                                                style={{ width: `${Math.max(percent, 2)}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        <div className="text-xs font-semibold w-12 text-right">
+                                                            {stat.distinctUsersCount}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         )}
 

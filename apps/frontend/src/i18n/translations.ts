@@ -97,6 +97,10 @@ export const translations: Translations = {
     'admin.auditTarget': { en: 'Target', tr: 'Hedef' },
     'admin.auditDetails': { en: 'Details', tr: 'Detaylar' },
     'admin.auditSystem': { en: 'System', tr: 'Sistem' },
+    'admin.serverDistribution': { en: 'Server Distribution (Unique Accounts)', tr: 'Sunucu Dağılımı (Farklı Hesaplar)' },
+    'admin.serverDistributionDesc': { en: 'Shows the number of distinct Windows accounts currently assigned per server.', tr: 'Her sunucuya atalı birbirinden farklı (unique) Windows hesaplarının sayısını gösterir.' },
+    'admin.distinctUsers': { en: 'Unique Accounts', tr: 'Farklı Hesap' },
+    'admin.failedLoadHostStats': { en: 'Failed to load host statistics', tr: 'Sunucu istatistikleri yüklenemedi' },
     'admin.noAuditLogs': { en: 'No audit logs found', tr: 'Denetim izi bulunamadı' },
 
     // ===== Alerts (confirm/alert messages) =====

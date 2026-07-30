@@ -291,4 +291,38 @@ export class RdpService {
             throw new ForbiddenException('Invalid or expired RDP connection token');
         }
     }
+
+    async getHostStats() {
+        const hosts = await this.prisma.sessionHost.findMany();
+        const assignments = await this.prisma.userAssignment.findMany({
+            include: {
+                windowsAccount: true
+            }
+        });
+
+        const stats: Record<string, Set<string>> = {};
+        
+        // Initialize all known hosts with 0
+        for (const h of hosts) {
+            stats[h.hostname] = new Set();
+        }
+
+        // Fill with actual data
+        for (const assign of assignments) {
+            const host = assign.windowsAccount.host;
+            const username = assign.windowsAccount.windows_username.toLowerCase();
+            
+            if (!stats[host]) {
+                stats[host] = new Set();
+            }
+            stats[host].add(username);
+        }
+
+        const result = Object.keys(stats).map(host => ({
+            host,
+            distinctUsersCount: stats[host].size
+        })).sort((a, b) => b.distinctUsersCount - a.distinctUsersCount); // Sort by highest count
+
+        return result;
+    }
 }
