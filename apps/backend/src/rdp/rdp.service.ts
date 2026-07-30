@@ -215,55 +215,36 @@ export class RdpService {
 
             // Settings are applied directly in the RDP template below
 
-            const lines = [
-                `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}`,
-                `redirectprinters:i:${settings.printerRedirection ? 1 : 0}`,
-                `redirectcomports:i:${settings.comPortRedirection ? 1 : 0}`,
-                `redirectsmartcards:i:${settings.smartCardRedirection ? 1 : 0}`,
-                `redirectdrives:i:${settings.driveRedirection ? 1 : 0}`
-            ];
+            const loadBalanceInfo = `loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.${account.host.toLowerCase()}`;
 
-            if (settings.driveRedirection) {
-                lines.push('drivestoredirect:s:*', 'devicestoredirect:s:*');
-            }
-
-            lines.push(
-                'session bpp:i:32',
-                'prompt for credentials on client:i:1',
-                'server port:i:3389',
-                'allow font smoothing:i:1',
-                'promptcredentialonce:i:1',
-                'gatewayusagemethod:i:2',
-                'gatewayprofileusagemethod:i:1',
-                'gatewaycredentialssource:i:0',
-                'full address:s:PB-WIN-MGMT.PRATIKBULUT.LOCAL',
-                'gatewayhostname:s:rds.pratikbulut.com',
-                'workspace id:s:pb-win-mgmt.pratikbulut.local',
-                'use redirection server name:i:1',
-                `loadbalanceinfo:s:tsv://MS Terminal Services Plugin.1.${account.host.toLowerCase()}`,
-                `use multimon:i:${settings.multiMonitor ? 1 : 0}`,
-                `audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}`,
-                `audiocapturemode:i:${settings.microphoneRedirection ? 1 : 0}`,
-                `smart sizing:i:${settings.smartSizing ? 1 : 0}`
-            );
-
-            if (settings.highResolution) {
-                lines.push(
-                    'dynamic resolution:i:1',
-                    'forcehidpioptimizations:i:1',
-                    'desktopwidth:i:0',
-                    'desktopheight:i:0'
-                );
-            } else {
-                lines.push('dynamic resolution:i:0');
-            }
-
-            lines.push(`username:s:${account.windows_username}@pratikbulut.local`);
-
-            return lines.join('\r\n') + '\r\n';
+            return `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}
+redirectprinters:i:${settings.printerRedirection ? 1 : 0}
+redirectcomports:i:${settings.comPortRedirection ? 1 : 0}
+redirectsmartcards:i:${settings.smartCardRedirection ? 1 : 0}
+redirectdrives:i:${settings.driveRedirection ? 1 : 0}
+${settings.driveRedirection ? 'drivestoredirect:s:*\ndevicestoredirect:s:*' : ''}
+session bpp:i:32
+prompt for credentials on client:i:1
+server port:i:3389
+allow font smoothing:i:1
+promptcredentialonce:i:1
+gatewayusagemethod:i:2
+gatewayprofileusagemethod:i:1
+gatewaycredentialssource:i:0
+full address:s:PB-WIN-MGMT.PRATIKBULUT.LOCAL
+gatewayhostname:s:rds.pratikbulut.com
+workspace id:s:pb-win-mgmt.pratikbulut.local
+use redirection server name:i:1
+${loadBalanceInfo}
+use multimon:i:${settings.multiMonitor ? 1 : 0}
+audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}
+audiocapturemode:i:${settings.microphoneRedirection ? 1 : 0}
+${settings.smartSizing ? 'smart sizing:i:1' : 'smart sizing:i:0'}
+${settings.highResolution ? 'dynamic resolution:i:1\nforcehidpioptimizations:i:1\ndesktopwidth:i:0\ndesktopheight:i:0' : 'dynamic resolution:i:0'}
+username:s:${account.windows_username}@pratikbulut.local
+`;
         } catch (e) {
-            console.error('RDP Content Generation Error:', e);
-            throw new ForbiddenException('Invalid or expired RDP connection token: ' + (e instanceof Error ? e.message : 'Unknown'));
+            throw new ForbiddenException('Invalid or expired RDP connection token');
         }
     }
 }
