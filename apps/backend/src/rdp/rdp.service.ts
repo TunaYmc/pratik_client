@@ -204,8 +204,11 @@ export class RdpService {
     }
 
     async generateRdpContent(token: string) {
+        console.log('--- generateRdpContent CALLED ---');
         try {
+            console.log(`Verifying token: ${token.substring(0, 10)}...`);
             const payload = this.jwtService.verify(token, { secret: process.env.RDP_JWT_SECRET || 'rdp-secret' });
+            console.log(`Token payload decoded for accountId: ${payload.accountId}`);
             const account = await this.prisma.windowsAccount.findUnique({
                 where: { id: payload.accountId }
             });
@@ -284,6 +287,7 @@ export class RdpService {
             // Join with \r\n (CRLF) which is the standard for RDP files on Windows
             return rdpString;
         } catch (e) {
+            console.error('generateRdpContent ERROR:', e);
             throw new ForbiddenException('Invalid or expired RDP connection token');
         }
     }
