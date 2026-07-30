@@ -213,37 +213,70 @@ export class RdpService {
             const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
             const settings = JSON.parse((user as any)?.rdpSettings || '{}');
 
-            // Settings are applied directly in the RDP template below
+            // Strip .pratikbulut.local suffix if it already exists in the host value (legacy data protection)
+            let hostName = account.host.toLowerCase().replace(/\.pratikbulut\.local$/i, '');
+            const fullAddress = `${hostName}.pratikbulut.local`;
+            const rdpUsername = `${account.windows_username}@pratikbulut.local`;
 
-            const loadBalanceInfo = `loadbalanceinfo:s:`;
+            // Build RDP lines as an array to avoid empty lines and encoding issues
+            const lines: string[] = [
+                `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}`,
+                `redirectprinters:i:${settings.printerRedirection ? 1 : 0}`,
+                `redirectcomports:i:${settings.comPortRedirection ? 1 : 0}`,
+                `redirectsmartcards:i:${settings.smartCardRedirection ? 1 : 0}`,
+                `redirectdrives:i:${settings.driveRedirection ? 1 : 0}`,
+            ];
 
-            return `redirectclipboard:i:${settings.clipboardRedirection ? 1 : 0}
-redirectprinters:i:${settings.printerRedirection ? 1 : 0}
-redirectcomports:i:${settings.comPortRedirection ? 1 : 0}
-redirectsmartcards:i:${settings.smartCardRedirection ? 1 : 0}
-redirectdrives:i:${settings.driveRedirection ? 1 : 0}
-${settings.driveRedirection ? 'drivestoredirect:s:*\ndevicestoredirect:s:*' : ''}
-session bpp:i:32
-prompt for credentials on client:i:1
-server port:i:3389
-allow font smoothing:i:1
-promptcredentialonce:i:1
-gatewayusagemethod:i:2
-gatewayprofileusagemethod:i:1
-gatewaycredentialssource:i:0
-full address:s:${account.host.toLowerCase()}.pratikbulut.local
-gatewayhostname:s:rds.pratikbulut.com
-workspace id:s:pb-win-mgmt.pratikbulut.local
-use redirection server name:i:1
-${loadBalanceInfo}
-use multimon:i:${settings.multiMonitor ? 1 : 0}
-audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}
-audiocapturemode:i:${settings.microphoneRedirection ? 1 : 0}
-${settings.smartSizing ? 'smart sizing:i:1' : 'smart sizing:i:0'}
-${settings.highResolution ? 'dynamic resolution:i:1\nforcehidpioptimizations:i:1\ndesktopwidth:i:0\ndesktopheight:i:0' : 'dynamic resolution:i:0'}
-gatewayusername:s:${account.windows_username}@pratikbulut.local
-username:s:${account.windows_username}@pratikbulut.local
-`;
+            // Conditionally add drive/device redirection lines
+            if (settings.driveRedirection) {
+                lines.push('drivestoredirect:s:*');
+                lines.push('devicestoredirect:s:*');
+            }
+
+            lines.push(
+                'session bpp:i:32',
+                'prompt for credentials on client:i:0',
+                'server port:i:3389',
+                'allow font smoothing:i:1',
+                'promptcredentialonce:i:0',
+                'gatewayusagemethod:i:2',
+                'gatewayprofileusagemethod:i:1',
+                'gatewaycredentialssource:i:0',
+                `full address:s:${fullAddress}`,
+                'gatewayhostname:s:rds.pratikbulut.com',
+                'loadbalanceinfo:s:',
+                'use redirection server name:i:0',
+                `use multimon:i:${settings.multiMonitor ? 1 : 0}`,
+                `screen mode id:i:2`,
+                `authentication level:i:2`,
+                `autoreconnection enabled:i:1`,
+                `bandwidthautodetect:i:1`,
+                `networkautodetect:i:1`,
+                `connection type:i:7`,
+                `audiomode:i:${settings.audioMode !== undefined ? settings.audioMode : 0}`,
+                `audiocapturemode:i:${settings.microphoneRedirection ? 1 : 0}`,
+                settings.smartSizing ? 'smart sizing:i:1' : 'smart sizing:i:0',
+            );
+
+            // High resolution settings
+            if (settings.highResolution) {
+                lines.push(
+                    'dynamic resolution:i:1',
+                    'forcehidpioptimizations:i:1',
+                    'desktopwidth:i:0',
+                    'desktopheight:i:0',
+                );
+            } else {
+                lines.push('dynamic resolution:i:0');
+            }
+
+            lines.push(
+                `gatewayusername:s:${rdpUsername}`,
+                `username:s:${rdpUsername}`,
+            );
+
+            // Join with \r\n (CRLF) which is the standard for RDP files on Windows
+            return lines.join('\r\n') + '\r\n';
         } catch (e) {
             throw new ForbiddenException('Invalid or expired RDP connection token');
         }
