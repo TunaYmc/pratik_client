@@ -29,6 +29,10 @@ type OnboardData struct {
 	DefaultPassword string   `json:"defaultPassword"`
 }
 
+type OffboardData struct {
+	CompanyName string `json:"companyName"`
+}
+
 func main() {
 	serverURL := os.Getenv("PRATIK_BACKEND_URL")
 	if serverURL == "" {
@@ -73,6 +77,14 @@ func main() {
 				}
 
 				handleOnboardCompany(c, data)
+			} else if msg.Event == "offboard_company" {
+				var data OffboardData
+				if err := json.Unmarshal(msg.Data, &data); err != nil {
+					log.Printf("Failed to unmarshal offboard data: %v", err)
+					continue
+				}
+
+				handleOffboardCompany(c, data)
 			}
 		}
 		c.Close()
@@ -104,6 +116,30 @@ func handleOnboardCompany(c *websocket.Conn, data OnboardData) {
 
 	log.Printf("Successfully processed %s. Output: %s", data.CompanyName, string(output))
 	sendResult(c, data.CompanyId, true, "")
+}
+
+func handleOffboardCompany(c *websocket.Conn, data OffboardData) {
+	log.Printf("Processing offboarding for company: %s", data.CompanyName)
+
+	scriptContent := generateOffboardPowershellScript(data)
+	scriptPath := filepath.Join(os.TempDir(), fmt.Sprintf("offboard_%s.ps1", data.CompanyName))
+
+	log.Printf("Generated Offboard Script for %s:\n%s", data.CompanyName, scriptContent)
+
+	if err := ioutil.WriteFile(scriptPath, []byte(scriptContent), 0644); err != nil {
+		log.Printf("Failed to write offboard script: %v", err)
+		return
+	}
+	defer os.Remove(scriptPath)
+
+	cmd := exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", scriptPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Printf("Offboard PS Error: %v\nOutput: %s", err, string(output))
+		return
+	}
+
+	log.Printf("Successfully offboarded %s. Output: %s", data.CompanyName, string(output))
 }
 
 func sendResult(c *websocket.Conn, companyId int, success bool, errStr string) {
@@ -170,4 +206,42 @@ Set-FsrmQuota -Path $YeniKlasorYolu -Size $KotaBoyutu
 
 Write-Host ">>> İŞLEM TAMAMLANDI! $SirketAdi sisteme başarıyla eklendi." -ForegroundColor Green
 `, data.CompanyName, data.UserCount, data.QuotaTB, data.DefaultPassword, usersArray)
+}
+
+func generateOffboardPowershellScript(data OffboardData) string {
+	return fmt.Sprintf(`
+# --- PRATİKBULUT MÜŞTERİ (TENANT) SİLME OTOMASYONU ---
+Import-Module ActiveDirectory
+Import-Module FileServerResourceManager
+
+$SirketAdi = "%s"
+$AnaOU = "OU=sirketler,DC=pratikbulut,DC=local" 
+$HedefOU = "OU=$SirketAdi,$AnaOU"
+$AnaKlasorYolu = "Z:\Storage"
+$HedefKlasorYolu = "$AnaKlasorYolu\$SirketAdi"
+
+Write-Host ">>> $SirketAdi için silme işlemi başlatılıyor..." -ForegroundColor Yellow
+
+$OU = Get-ADOrganizationalUnit -Identity $HedefOU -ErrorAction SilentlyContinue
+if ($OU) {
+    Get-ADUser -SearchBase $HedefOU -Filter * | Remove-ADUser -Confirm:$false
+    Get-ADGroup -SearchBase $HedefOU -Filter * | Remove-ADGroup -Confirm:$false
+    Remove-ADOrganizationalUnit -Identity $HedefOU -Recursive -Confirm:$false
+    Write-Host ">>> AD OU, Gruplar ve Kullanıcılar silindi."
+} else {
+    Write-Host ">>> AD OU bulunamadı, atlanıyor."
+}
+
+if (Get-FsrmQuota -Path $HedefKlasorYolu -ErrorAction SilentlyContinue) {
+    Remove-FsrmQuota -Path $HedefKlasorYolu -Confirm:$false
+    Write-Host ">>> FSRM Kotası silindi."
+}
+
+if (Test-Path $HedefKlasorYolu) {
+    Remove-Item -Path $HedefKlasorYolu -Recurse -Force
+    Write-Host ">>> Şirket ortak klasörü silindi."
+}
+
+Write-Host ">>> İŞLEM TAMAMLANDI! $SirketAdi sistemden tamamen silindi." -ForegroundColor Green
+`, data.CompanyName)
 }

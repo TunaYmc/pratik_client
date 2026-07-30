@@ -70,4 +70,17 @@ export class BrokerGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Use JSON.stringify for ws package
     this.brokerClient.send(JSON.stringify(msg));
   }
+
+  public async sendOffboardTask(payload: any) {
+    if (!this.brokerClient) {
+      throw new Error('Broker Agent is not connected.');
+    }
+
+    const msg = {
+      event: 'offboard_company',
+      data: payload
+    };
+
+    this.brokerClient.send(JSON.stringify(msg));
+  }
 }

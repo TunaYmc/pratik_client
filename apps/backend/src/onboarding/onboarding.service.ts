@@ -175,6 +175,9 @@ export class OnboardingService {
   }
 
   async deleteCompany(id: number) {
+    const company = await this.prisma.company.findUnique({ where: { id } });
+    if (!company) throw new Error('Company not found');
+
     // We should also delete the users and their windows accounts if possible
     // Users are cascade deleted via companyId (if configured).
     // Let's manually ensure we delete windows accounts for users in this company before deleting company
@@ -196,6 +199,12 @@ export class OnboardingService {
     await this.prisma.company.delete({
       where: { id }
     });
+
+    try {
+      await this.brokerGateway.sendOffboardTask({ companyName: company.internalName });
+    } catch (e) {
+      console.error('Broker agent error during offboard:', e);
+    }
 
     return { success: true };
   }
