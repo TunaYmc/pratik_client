@@ -275,8 +275,14 @@ export class RdpService {
                 `username:s:${rdpUsername}`,
             );
 
+            // Log the raw RDP content for debugging in Coolify
+            const rdpString = lines.join('\r\n') + '\r\n';
+            console.log('----- START GENERATED RDP CONTENT -----');
+            console.log(rdpString);
+            console.log('----- END GENERATED RDP CONTENT -----');
+
             // Join with \r\n (CRLF) which is the standard for RDP files on Windows
-            return lines.join('\r\n') + '\r\n';
+            return rdpString;
         } catch (e) {
             throw new ForbiddenException('Invalid or expired RDP connection token');
         }
