@@ -3,7 +3,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Settings from './pages/Settings';
-import PricingSettings from './pages/PricingSettings';
 import Onboarding from './pages/Onboarding';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { ThemeProvider } from './i18n/ThemeContext';
@@ -29,7 +28,6 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><Admin /></ProtectedRoute>} />
-            <Route path="/admin/pricing" element={<ProtectedRoute allowedRoles={['admin']}><PricingSettings /></ProtectedRoute>} />
             <Route path="/admin/onboarding" element={<ProtectedRoute allowedRoles={['admin']}><Onboarding /></ProtectedRoute>} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

@@ -18,16 +18,34 @@ export default function Settings() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [passwordLoading, setPasswordLoading] = useState(false);
+    
+    // Pricing Settings (Admin Only)
+    const [officeEur, setOfficeEur] = useState(50);
+    const [computeEur, setComputeEur] = useState(150);
+    const [storageEur, setStorageEur] = useState(15);
+    const [pricingLoading, setPricingLoading] = useState(false);
+    const [pricingSuccess, setPricingSuccess] = useState(false);
 
     const isAuthenticated = !!localStorage.getItem('token');
+    const currentRole = localStorage.getItem('role') || 'user';
 
     useEffect(() => {
         if (isAuthenticated) {
             axios.get('/api/user/settings', {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             }).then(res => setRdpSettings(res.data)).catch(console.error);
+
+            if (currentRole === 'admin') {
+                axios.get('/api/admin/settings', {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                }).then(res => {
+                    setOfficeEur(res.data.baseOfficeEur);
+                    setComputeEur(res.data.baseComputeEur);
+                    setStorageEur(res.data.baseStorageEur);
+                }).catch(console.error);
+            }
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, currentRole]);
 
     const updateRdpSetting = async (key: string, value: any) => {
         const newSettings = { ...rdpSettings, [key]: value };
@@ -72,6 +90,26 @@ export default function Settings() {
             alert(t('alert.failedPasswordChange'));
         } finally {
             setPasswordLoading(false);
+        }
+    };
+
+    const handleSavePricing = async () => {
+        setPricingLoading(true);
+        setPricingSuccess(false);
+        try {
+            await axios.post('/api/admin/settings', {
+                baseOfficeEur: officeEur,
+                baseComputeEur: computeEur,
+                baseStorageEur: storageEur
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setPricingSuccess(true);
+            setTimeout(() => setPricingSuccess(false), 3000);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setPricingLoading(false);
         }
     };
 
@@ -200,6 +238,35 @@ export default function Settings() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    )}
+
+                    {/* Pricing Settings (Only if Admin) */}
+                    {currentRole === 'admin' && (
+                        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6">
+                            <h2 className="text-lg font-medium mb-1">{t('admin.pricingSettings')}</h2>
+                            <p className="text-sm text-[var(--color-text-muted)] mb-5">Şirket ekleme sırasındaki maliyet hesaplamalarının temel fiyatları.</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('admin.baseOfficeEur')}</label>
+                                    <input type="number" value={officeEur} onChange={e => setOfficeEur(parseFloat(e.target.value))} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('admin.baseComputeEur')}</label>
+                                    <input type="number" value={computeEur} onChange={e => setComputeEur(parseFloat(e.target.value))} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('admin.baseStorageEur')}</label>
+                                    <input type="number" value={storageEur} onChange={e => setStorageEur(parseFloat(e.target.value))} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
+                                </div>
+                                <div className="md:col-span-3 flex justify-end mt-2 items-center gap-4">
+                                    {pricingSuccess && <span className="text-emerald-500 text-sm font-medium">{t('common.success')}!</span>}
+                                    <button onClick={handleSavePricing} disabled={pricingLoading} className="bg-[var(--color-text)] text-[var(--color-background)] hover:bg-gray-200 px-6 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2">
+                                        {pricingLoading && <Loader2 size={16} className="animate-spin" />} {t('common.save')}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
 
