@@ -226,6 +226,7 @@ $OU = Get-ADOrganizationalUnit -Identity $HedefOU -ErrorAction SilentlyContinue
 if ($OU) {
     Get-ADUser -SearchBase $HedefOU -Filter * | Remove-ADUser -Confirm:$false
     Get-ADGroup -SearchBase $HedefOU -Filter * | Remove-ADGroup -Confirm:$false
+    Set-ADOrganizationalUnit -Identity $HedefOU -ProtectedFromAccidentalDeletion $false
     Remove-ADOrganizationalUnit -Identity $HedefOU -Recursive -Confirm:$false
     Write-Host ">>> AD OU, Gruplar ve Kullanıcılar silindi."
 } else {
