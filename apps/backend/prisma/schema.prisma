@@ -27,7 +27,7 @@ model User {
   rdpSettings     String?           @default("{}")
 
   companyId       Int?
-  company         Company?          @relation(fields: [companyId], references: [id])
+  company         Company?          @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   auditActions    AuditLog[]        @relation("AuditActor")
   auditTargets    AuditLog[]        @relation("AuditTarget")
@@ -133,6 +133,7 @@ model Company {
   netPriceEur      Float
   status           String   @default("pending") // pending, active, failed
   defaultPassword  String   @default("PratikBulut@2026")
+  campaign         String   @default("none")
   createdAt        DateTime @default(now())
 
   employees        CompanyEmployee[]

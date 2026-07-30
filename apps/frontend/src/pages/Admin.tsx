@@ -686,9 +686,9 @@ export default function Admin() {
                         </div>
                         <div className="flex items-center gap-3">
                             {currentRole === 'admin' && (
-                                <button onClick={() => navigate('/admin/onboarding')} className="flex items-center gap-2 text-sm px-3 py-1.5 bg-emerald-600/10 text-emerald-500 border border-emerald-500/20 rounded hover:bg-emerald-600/20 transition-colors shadow-sm font-medium">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                                    {t('admin.onboarding')}
+                                <button onClick={() => navigate('/admin/companies')} className="flex items-center gap-2 text-sm px-3 py-1.5 bg-emerald-600/10 text-emerald-500 border border-emerald-500/20 rounded hover:bg-emerald-600/20 transition-colors shadow-sm font-medium">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                    Şirketler
                                 </button>
                             )}
                             <button onClick={fetchHosts} className="text-sm px-3 py-1.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-hover)] transition-colors shadow-sm">

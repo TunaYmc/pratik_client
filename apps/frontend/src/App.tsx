@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Settings from './pages/Settings';
 import Onboarding from './pages/Onboarding';
+import { Companies } from './pages/Companies';
+import { CompanyDetails } from './pages/CompanyDetails';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { ThemeProvider } from './i18n/ThemeContext';
 
@@ -29,6 +31,8 @@ export default function App() {
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><Admin /></ProtectedRoute>} />
             <Route path="/admin/onboarding" element={<ProtectedRoute allowedRoles={['admin']}><Onboarding /></ProtectedRoute>} />
+            <Route path="/admin/companies" element={<ProtectedRoute allowedRoles={['admin']}><Companies /></ProtectedRoute>} />
+            <Route path="/admin/companies/:id" element={<ProtectedRoute allowedRoles={['admin']}><CompanyDetails /></ProtectedRoute>} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </BrowserRouter>

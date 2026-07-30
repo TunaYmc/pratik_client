@@ -26,6 +26,7 @@ const Onboarding: React.FC = () => {
     const [commitmentMonths, setCommitmentMonths] = useState(1);
     const [discountPct, setDiscountPct] = useState(0);
     const [marketingPct, setMarketingPct] = useState(0);
+    const [campaign, setCampaign] = useState('none');
     const [defaultPassword, setDefaultPassword] = useState('PratikBulut@2026');
 
     // Data from Backend
@@ -131,6 +132,7 @@ const Onboarding: React.FC = () => {
                 marketingPct,
                 netPriceEur,
                 defaultPassword,
+                campaign,
                 employees
             }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -243,9 +245,19 @@ const Onboarding: React.FC = () => {
                 {/* Step 3 */}
                 <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6">
                     <h2 className="text-lg font-medium mb-4">{t('onboarding.step3')}</h2>
-                    <div>
-                        <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('onboarding.diskQuota')}</label>
-                        <input type="number" min="0" step="0.5" value={diskQuotaTB} onChange={e => setDiskQuotaTB(parseFloat(e.target.value) || 0)} className="w-full md:w-1/3 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('onboarding.diskQuota')}</label>
+                            <input type="number" min="0" step="0.5" value={diskQuotaTB} onChange={e => setDiskQuotaTB(parseFloat(e.target.value) || 0)} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
+                        </div>
+                        <div>
+                            <label className="block text-sm text-[var(--color-text-muted)] mb-1">Kampanya</label>
+                            <select value={campaign} onChange={e => setCampaign(e.target.value)} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm">
+                                <option value="none">Kampanyasız</option>
+                                <option value="1_month_free">İlk 1 Ay Ücretsiz</option>
+                                <option value="3_months_free">İlk 3 Ay Ücretsiz</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
