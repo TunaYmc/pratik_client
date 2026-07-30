@@ -274,8 +274,8 @@ export default function Settings() {
                                 {/* Microphone Redirection */}
                                 <div className="flex items-center justify-between bg-[var(--color-background)] rounded-xl px-5 py-4 border border-[var(--color-border)]">
                                     <div className="pr-4">
-                                        <div className="text-sm font-medium">{t('settings.microphoneRedirection') || 'Mikrofon Yönlendirmesi'}</div>
-                                        <div className="text-xs text-[var(--color-text-muted)]">{t('settings.microphoneRedirectionDesc') || 'Yerel mikrofonunuzu uzak bilgisayarda kullanın.'}</div>
+                                        <div className="text-sm font-medium">{t('settings.microphoneRedirection')}</div>
+                                        <div className="text-xs text-[var(--color-text-muted)]">{t('settings.microphoneRedirectionDesc')}</div>
                                     </div>
                                     <button onClick={() => updateRdpSetting('microphoneRedirection', !rdpSettings.microphoneRedirection)} className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200 ${rdpSettings.microphoneRedirection ? 'bg-blue-500' : 'bg-[var(--color-border)]'}`}>
                                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${rdpSettings.microphoneRedirection ? 'translate-x-6' : 'translate-x-0'}`}></span>
@@ -285,8 +285,8 @@ export default function Settings() {
                                 {/* Drive Redirection */}
                                 <div className="flex items-center justify-between bg-[var(--color-background)] rounded-xl px-5 py-4 border border-[var(--color-border)]">
                                     <div className="pr-4">
-                                        <div className="text-sm font-medium">Yerel Disk Yönlendirmesi</div>
-                                        <div className="text-xs text-[var(--color-text-muted)]">Bilgisayarınızdaki diskleri uzak sunucuyla paylaşın.</div>
+                                        <div className="text-sm font-medium">{t('settings.driveRedirection')}</div>
+                                        <div className="text-xs text-[var(--color-text-muted)]">{t('settings.driveRedirectionDesc')}</div>
                                     </div>
                                     <button onClick={() => updateRdpSetting('driveRedirection', !rdpSettings.driveRedirection)} className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200 ${rdpSettings.driveRedirection ? 'bg-blue-500' : 'bg-[var(--color-border)]'}`}>
                                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${rdpSettings.driveRedirection ? 'translate-x-6' : 'translate-x-0'}`}></span>
@@ -296,8 +296,8 @@ export default function Settings() {
                                 {/* Smartcard Redirection */}
                                 <div className="flex items-center justify-between bg-[var(--color-background)] rounded-xl px-5 py-4 border border-[var(--color-border)]">
                                     <div className="pr-4">
-                                        <div className="text-sm font-medium">Akıllı Kart Yönlendirmesi</div>
-                                        <div className="text-xs text-[var(--color-text-muted)]">Akıllı kart (Smartcard) cihazlarınızı uzak sunucuyla paylaşın.</div>
+                                        <div className="text-sm font-medium">{t('settings.smartCardRedirection')}</div>
+                                        <div className="text-xs text-[var(--color-text-muted)]">{t('settings.smartCardRedirectionDesc')}</div>
                                     </div>
                                     <button onClick={() => updateRdpSetting('smartCardRedirection', !rdpSettings.smartCardRedirection)} className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200 ${rdpSettings.smartCardRedirection ? 'bg-blue-500' : 'bg-[var(--color-border)]'}`}>
                                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${rdpSettings.smartCardRedirection ? 'translate-x-6' : 'translate-x-0'}`}></span>
@@ -307,8 +307,8 @@ export default function Settings() {
                                 {/* COM Port Redirection */}
                                 <div className="flex items-center justify-between bg-[var(--color-background)] rounded-xl px-5 py-4 border border-[var(--color-border)]">
                                     <div className="pr-4">
-                                        <div className="text-sm font-medium">COM Bağlantı Noktası Yönlendirmesi</div>
-                                        <div className="text-xs text-[var(--color-text-muted)]">Seri bağlantı noktalarınızı (COM Ports) uzak sunucuyla paylaşın.</div>
+                                        <div className="text-sm font-medium">{t('settings.comPortRedirection')}</div>
+                                        <div className="text-xs text-[var(--color-text-muted)]">{t('settings.comPortRedirectionDesc')}</div>
                                     </div>
                                     <button onClick={() => updateRdpSetting('comPortRedirection', !rdpSettings.comPortRedirection)} className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200 ${rdpSettings.comPortRedirection ? 'bg-blue-500' : 'bg-[var(--color-border)]'}`}>
                                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${rdpSettings.comPortRedirection ? 'translate-x-6' : 'translate-x-0'}`}></span>

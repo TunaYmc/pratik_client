@@ -167,6 +167,12 @@ export const translations: Translations = {
     'settings.printerRedirectionDesc': { en: 'Allow the remote session to access local printers.', tr: 'Uzak oturumun yerel yazıcılara erişmesine izin verin.' },
     'settings.microphoneRedirection': { en: 'Microphone Redirection', tr: 'Mikrofon Yönlendirme' },
     'settings.microphoneRedirectionDesc': { en: 'Allow using the local microphone in the remote session.', tr: 'Uzak oturumda yerel mikrofonu kullanmaya izin verin.' },
+    'settings.driveRedirection': { en: 'Local Drive Redirection', tr: 'Yerel Disk Yönlendirmesi' },
+    'settings.driveRedirectionDesc': { en: 'Share your local drives with the remote server.', tr: 'Bilgisayarınızdaki diskleri uzak sunucuyla paylaşın.' },
+    'settings.smartCardRedirection': { en: 'Smart Card Redirection', tr: 'Akıllı Kart Yönlendirmesi' },
+    'settings.smartCardRedirectionDesc': { en: 'Share your Smart Card devices with the remote server.', tr: 'Akıllı kart (Smartcard) cihazlarınızı uzak sunucuyla paylaşın.' },
+    'settings.comPortRedirection': { en: 'COM Port Redirection', tr: 'COM Bağlantı Noktası Yönlendirmesi' },
+    'settings.comPortRedirectionDesc': { en: 'Share your serial ports (COM Ports) with the remote server.', tr: 'Seri bağlantı noktalarınızı (COM Ports) uzak sunucuyla paylaşın.' },
     'settings.savingOptions': { en: 'Saving...', tr: 'Kaydediliyor...' },
     'settings.optionsSaved': { en: 'Options saved.', tr: 'Ayarlar kaydedildi.' },
 };

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Monitor, Play, LogOut, Wrench, Settings, Search } from 'lucide-react';
-import { io } from 'socket.io-client';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useTheme } from '../i18n/ThemeContext';
 
@@ -28,35 +27,11 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Server Load State
-    const [serverLoad, setServerLoad] = useState<any>(null);
-    const [loadingLoad, setLoadingLoad] = useState(true);
-    const [pingMs, setPingMs] = useState<number | null>(null);
-
     const navigate = useNavigate();
     const currentRole = localStorage.getItem('role');
     const isAdminOrManager = currentRole === 'admin' || currentRole === 'manager';
     const { t } = useLanguage();
     const { theme } = useTheme();
-
-    const fetchServerLoad = async () => {
-        try {
-            const start = performance.now();
-            await axios.get('/api/system/ping', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            const end = performance.now();
-            setPingMs(Math.round(end - start));
-
-            const res = await axios.get('/api/system/load', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setServerLoad(res.data);
-            setLoadingLoad(false);
-        } catch (e) {
-            console.error('Failed to fetch metrics', e);
-        }
-    };
 
     useEffect(() => {
         const fetchSessions = async () => {
@@ -75,32 +50,6 @@ export default function Dashboard() {
         };
 
         fetchSessions();
-        fetchServerLoad();
-
-        // Connect WebSocket for live server load updates
-        const socketUrl = window.location.origin.includes('5173') || window.location.origin.includes('5174') ? 'http://localhost:3001' : window.location.origin;
-        const socket = io(socketUrl);
-        
-        socket.on('server_load', (data) => {
-            setServerLoad(data);
-            setLoadingLoad(false);
-        });
-
-        // Ping polling every 5 seconds for latency measurement
-        const pingInterval = setInterval(async () => {
-            try {
-                const start = performance.now();
-                await axios.get('/api/system/ping', {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
-                setPingMs(Math.round(performance.now() - start));
-            } catch (e) {}
-        }, 5000);
-
-        return () => {
-            clearInterval(pingInterval);
-            socket.disconnect();
-        };
     }, []);
 
     const handleConnect = async (accountId: number) => {
@@ -240,113 +189,7 @@ export default function Dashboard() {
                             </div>
                         )}
                     </div>
-                )}
-
-                {/* Server Load UI */}
-                <div className="mt-12">
-                    <h2 className="text-xl font-medium tracking-tight mb-6 flex items-center gap-2">
-                        <Monitor size={20} className="text-blue-500" /> {t('dashboard.serverLoad')}
-                    </h2>
-
-                    <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 shadow-sm">
-                        {loadingLoad ? (
-                            <div className="animate-pulse flex flex-col gap-6">
-                                <div className="h-12 bg-[var(--color-background)] rounded w-full"></div>
-                                <div className="h-12 bg-[var(--color-background)] rounded w-full"></div>
-                                <div className="h-12 bg-[var(--color-background)] rounded w-full"></div>
-                            </div>
-                        ) : serverLoad ? (
-                            <>
-                                <div className="grid grid-cols-1 gap-8" style={{ gridTemplateColumns: 'repeat(3, 1fr) 0.6fr' }}>
-                                    {/* CPU */}
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm font-medium text-[var(--color-text-muted)] uppercase tracking-wider">{t('dashboard.cpuUsage')}</span>
-                                            <span className={`text-sm font-semibold ${serverLoad.cpu > 80 ? 'text-red-400' : serverLoad.cpu > 50 ? 'text-yellow-400' : 'text-emerald-400'}`}>{serverLoad.cpu.toFixed(1)}%</span>
-                                        </div>
-                                        <div className="w-full bg-[var(--color-background)] rounded-full h-2.5 mb-1 overflow-hidden">
-                                            <div
-                                                className={`h-2.5 rounded-full transition-all duration-1000 ${serverLoad.cpu > 80 ? 'bg-red-500' : serverLoad.cpu > 50 ? 'bg-yellow-500' : 'bg-emerald-500'}`}
-                                                style={{ width: `${serverLoad.cpu}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    {/* RAM */}
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm font-medium text-[var(--color-text-muted)] uppercase tracking-wider">{t('dashboard.ramUsage')}</span>
-                                            <span className={`text-sm font-semibold ${serverLoad.ram.percent > 80 ? 'text-red-400' : serverLoad.ram.percent > 50 ? 'text-yellow-400' : 'text-emerald-400'}`}>{serverLoad.ram.percent.toFixed(1)}%</span>
-                                        </div>
-                                        <div className="w-full bg-[var(--color-background)] rounded-full h-2.5 mb-1 overflow-hidden">
-                                            <div
-                                                className={`h-2.5 rounded-full transition-all duration-1000 ${serverLoad.ram.percent > 80 ? 'bg-red-500' : serverLoad.ram.percent > 50 ? 'bg-yellow-500' : 'bg-emerald-500'}`}
-                                                style={{ width: `${serverLoad.ram.percent}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    {/* GPU */}
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm font-medium text-[var(--color-text-muted)] uppercase tracking-wider">{t('dashboard.gpuUsage')}</span>
-                                            <span className={`text-sm font-semibold ${serverLoad.gpu > 80 ? 'text-red-400' : serverLoad.gpu > 50 ? 'text-yellow-400' : 'text-emerald-400'}`}>{serverLoad.gpu.toFixed(1)}%</span>
-                                        </div>
-                                        <div className="w-full bg-[var(--color-background)] rounded-full h-2.5 mb-1 overflow-hidden">
-                                            <div
-                                                className={`h-2.5 rounded-full transition-all duration-1000 ${serverLoad.gpu > 80 ? 'bg-red-500' : serverLoad.gpu > 50 ? 'bg-yellow-500' : 'bg-emerald-500'}`}
-                                                style={{ width: `${serverLoad.gpu}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    {/* Ping */}
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm font-medium text-[var(--color-text-muted)] uppercase tracking-wider">{t('dashboard.ping')}</span>
-                                            <span className={`text-sm font-semibold ${pingMs !== null && pingMs >= 500 ? 'text-red-400' : pingMs !== null && pingMs >= 250 ? 'text-yellow-400' : 'text-emerald-400'}`}>
-                                                {pingMs !== null ? `${pingMs} ms` : '—'}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-[var(--color-background)] rounded-full h-2.5 mb-1 overflow-hidden">
-                                            <div
-                                                className={`h-2.5 rounded-full transition-all duration-1000 ${pingMs !== null && pingMs >= 500 ? 'bg-red-500' : pingMs !== null && pingMs >= 250 ? 'bg-yellow-500' : 'bg-emerald-500'}`}
-                                                style={{ width: `${Math.min(100, ((pingMs || 0) / 750) * 100)}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                {(() => {
-                                    let redCount = 0;
-                                    if (serverLoad.cpu > 80) redCount++;
-                                    if (serverLoad.ram.percent > 80) redCount++;
-                                    if (serverLoad.gpu > 80) redCount++;
-                                    if (pingMs !== null && pingMs >= 500) redCount++;
-
-                                    if (redCount >= 2) {
-                                        return (
-                                            <div className="mt-4 flex items-center gap-2 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2.5">
-                                                <span>⚠️</span> {t('dashboard.highLoadWarning')}
-                                            </div>
-                                        );
-                                    } else if (pingMs !== null && pingMs >= 500) {
-                                        return (
-                                            <div className="mt-4 flex items-center gap-2 text-sm text-red-400 bg-red-400/10 border border-red-500/20 rounded-lg px-4 py-2.5">
-                                                <span>⚠️</span> {t('dashboard.pingWarning')}
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                })()}
-                            </>
-                        ) : (
-                            <div className="text-center text-[var(--color-text-muted)]">{t('dashboard.failedMetrics')}</div>
-                        )}
-                    </div>
-                </div>
-
-            </div>
+                )}            </div>
         </div>
     );
 }
