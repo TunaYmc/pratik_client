@@ -29,7 +29,6 @@ export default function Admin() {
     const [activeSessions, setActiveSessions] = useState<any[]>([]);
     const [hosts, setHosts] = useState<any[]>([]);
     const [hostStats, setHostStats] = useState<any[]>([]);
-    const [loadingHostStats, setLoadingHostStats] = useState(false);
     const [loading, setLoading] = useState(true);
     const [loadingSessions, setLoadingSessions] = useState(false);
     const [loadingHosts, setLoadingHosts] = useState(false);
@@ -113,14 +112,11 @@ export default function Admin() {
 
     const fetchHostStats = async () => {
         if (currentRole !== 'admin') return;
-        setLoadingHostStats(true);
         try {
             const res = await axios.get('/api/admin/host-stats', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
             setHostStats(res.data);
         } catch {
             console.error('Failed to load host stats');
-        } finally {
-            setLoadingHostStats(false);
         }
     };
 
@@ -567,7 +563,7 @@ export default function Admin() {
                                     <div>
                                         <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('admin.targetHost')}</label>
                                         <select required value={host} onChange={e => setHost(e.target.value)} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)]">
-                                            <option value="">{t('admin.selectServerType') || 'Sunucu Seçin'}</option>
+                                            <option value="">{t('admin.selectServerType')}</option>
                                             {hosts.map((h: any) => (
                                                 <option key={h.id} value={h.hostname}>{h.hostname}</option>
                                             ))}
@@ -619,47 +615,6 @@ export default function Admin() {
                                         {t('admin.createUser')}
                                     </button>
                                 </form>
-                            </div>
-                        )}
-
-                        {/* Server Distribution Chart (Admin Only) */}
-                        {currentRole === 'admin' && (
-                            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 mb-8">
-                                <div className="mb-4">
-                                    <h2 className="text-lg font-medium">{t('admin.serverDistribution')}</h2>
-                                    <p className="text-sm text-[var(--color-text-muted)] mt-1">{t('admin.serverDistributionDesc')}</p>
-                                </div>
-                                
-                                {loadingHostStats ? (
-                                    <p className="text-sm text-[var(--color-text-muted)]">{t('common.loading')}</p>
-                                ) : hostStats.length === 0 ? (
-                                    <p className="text-sm text-[var(--color-text-muted)]">{t('admin.failedLoadHostStats')}</p>
-                                ) : (
-                                    <div className="space-y-4 mt-6">
-                                        {hostStats.map((stat, idx) => {
-                                            const maxCount = Math.max(...hostStats.map(s => s.distinctUsersCount), 1);
-                                            const percent = (stat.distinctUsersCount / maxCount) * 100;
-                                            return (
-                                                <div key={idx} className="flex items-center gap-4">
-                                                    <div className="w-1/3 truncate text-sm font-medium text-[var(--color-text)]" title={stat.host}>
-                                                        {stat.host}
-                                                    </div>
-                                                    <div className="w-2/3 flex items-center gap-3">
-                                                        <div className="flex-1 h-2.5 bg-[var(--color-background)] rounded-full overflow-hidden">
-                                                            <div 
-                                                                className="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                                                                style={{ width: `${Math.max(percent, 2)}%` }}
-                                                            ></div>
-                                                        </div>
-                                                        <div className="text-xs font-semibold w-12 text-right">
-                                                            {stat.distinctUsersCount}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
                             </div>
                         )}
 
@@ -726,7 +681,7 @@ export default function Admin() {
                 <div className="mt-8 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-4">
-                            <h2 className="text-lg font-medium">{t('admin.connectedServers') || 'Bağlı Sunucular'}</h2>
+                            <h2 className="text-lg font-medium">{t('admin.connectedServers')}</h2>
                         </div>
                         <button onClick={fetchHosts} className="text-sm px-3 py-1.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-hover)] transition-colors shadow-sm">
                             {loadingHosts ? t('common.refreshing') : t('common.refresh')}
@@ -737,24 +692,30 @@ export default function Admin() {
                             <table className="w-full text-left text-sm text-[var(--color-text-muted)]">
                                 <thead>
                                     <tr className="border-b border-[var(--color-border)]">
-                                        <th className="pb-3 font-medium text-[var(--color-text)]">Sunucu Adı</th>
-                                        <th className="pb-3 font-medium text-[var(--color-text)]">IP Adresi</th>
-                                        <th className="pb-3 font-medium text-[var(--color-text)]">Durum</th>
-                                        <th className="pb-3 font-medium text-[var(--color-text)]">CPU</th>
-                                        <th className="pb-3 font-medium text-[var(--color-text)]">RAM</th>
-                                        <th className="pb-3 font-medium text-[var(--color-text)]">Son Görülme</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">{t('admin.serverName')}</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">{t('admin.distinctUsers')}</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">{t('admin.status')}</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">{t('admin.cpu')}</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">{t('admin.ram')}</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">{t('admin.lastSeen')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--color-border)]">
                                     {hosts.map((h, idx) => {
                                         const isOnline = h.status === 'online';
+                                        const stat = hostStats.find(s => s.host === h.hostname);
+                                        const userCount = stat ? stat.distinctUsersCount : 0;
                                         return (
                                         <tr key={idx} className="hover:bg-[var(--color-surface-hover)]">
                                             <td className="py-2.5 font-medium text-[var(--color-text)]">{h.hostname}</td>
-                                            <td className="py-2.5">{h.ipAddress || '-'}</td>
+                                            <td className="py-2.5">
+                                                <span className="inline-flex items-center justify-center bg-[var(--color-background)] border border-[var(--color-border)] rounded-full px-2 py-0.5 text-xs font-medium">
+                                                    {userCount}
+                                                </span>
+                                            </td>
                                             <td className="py-2.5">
                                                 <span className={`px-2 py-0.5 rounded text-xs ${isOnline ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
-                                                    {isOnline ? 'Online' : 'Offline'}
+                                                    {isOnline ? t('admin.online') : t('admin.offline')}
                                                 </span>
                                             </td>
                                             <td className="py-2.5">{h.cpuUsage != null ? `${h.cpuUsage.toFixed(1)}%` : '-'}</td>
