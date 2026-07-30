@@ -26,6 +26,9 @@ model User {
   userTags        UserTag[]
   rdpSettings     String?           @default("{}")
 
+  companyId       Int?
+  company         Company?          @relation(fields: [companyId], references: [id])
+
   auditActions    AuditLog[]        @relation("AuditActor")
   auditTargets    AuditLog[]        @relation("AuditTarget")
 }
@@ -133,6 +136,7 @@ model Company {
   createdAt        DateTime @default(now())
 
   employees        CompanyEmployee[]
+  users            User[]
 }
 
 model CompanyEmployee {
@@ -140,6 +144,8 @@ model CompanyEmployee {
   companyId       Int
   fullName        String
   windowsUsername String
+  targetHost      String
+  role            String   @default("user") // "manager", "user"
   status          String   @default("pending") // pending, active, failed
 
   company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)

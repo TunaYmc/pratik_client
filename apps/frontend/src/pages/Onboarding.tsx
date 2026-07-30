@@ -13,9 +13,10 @@ const Onboarding: React.FC = () => {
     const [internalName, setInternalName] = useState('');
     
     // Step 2: Employees & Server
-    const [employees, setEmployees] = useState<{fullName: string, windowsUsername: string}[]>([]);
+    const [employees, setEmployees] = useState<{fullName: string, windowsUsername: string, targetHost: string, role: string}[]>([]);
     const [tempFullName, setTempFullName] = useState('');
-    const [targetHost, setTargetHost] = useState('');
+    const [tempTargetHost, setTempTargetHost] = useState('');
+    const [tempRole, setTempRole] = useState('user');
     const [hosts, setHosts] = useState<any[]>([]);
 
     // Step 3: Storage
@@ -81,7 +82,7 @@ const Onboarding: React.FC = () => {
 
     const handleAddEmployee = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!tempFullName.trim()) return;
+        if (!tempFullName.trim() || !tempTargetHost) return;
 
         const parts = tempFullName.trim().split(' ');
         let generated = '';
@@ -93,8 +94,9 @@ const Onboarding: React.FC = () => {
             generated = sanitizeName(first) + sanitizeName(last.charAt(0));
         }
 
-        setEmployees([...employees, { fullName: tempFullName, windowsUsername: generated }]);
+        setEmployees([...employees, { fullName: tempFullName, windowsUsername: generated, targetHost: tempTargetHost, role: tempRole }]);
         setTempFullName('');
+        // Optional: Keep tempTargetHost and tempRole selected for quick adding of multiple similar users
     };
 
     const removeEmployee = (idx: number) => {
@@ -102,12 +104,15 @@ const Onboarding: React.FC = () => {
     };
 
     // Calculate Price
-    let basePerUser = 50; // default
-    const tgt = targetHost.toLowerCase();
-    if (tgt.includes('compute')) basePerUser = settings.baseComputeEur;
-    else if (tgt.includes('office')) basePerUser = settings.baseOfficeEur;
+    let grossPriceEur = diskQuotaTB * settings.baseStorageEur;
+    for (const emp of employees) {
+        let basePerUser = 50; // default
+        const tgt = emp.targetHost.toLowerCase();
+        if (tgt.includes('compute')) basePerUser = settings.baseComputeEur;
+        else if (tgt.includes('office')) basePerUser = settings.baseOfficeEur;
+        grossPriceEur += basePerUser;
+    }
 
-    const grossPriceEur = (employees.length * basePerUser) + (diskQuotaTB * settings.baseStorageEur);
     const netPriceEur = grossPriceEur - (grossPriceEur * discountPct / 100);
     const marketingShareEur = netPriceEur * marketingPct / 100;
     
@@ -117,7 +122,6 @@ const Onboarding: React.FC = () => {
             await axios.post('/api/admin/onboarding', {
                 displayName,
                 internalName,
-                targetHost,
                 diskQuotaTB,
                 baseOfficeEur: settings.baseOfficeEur,
                 baseComputeEur: settings.baseComputeEur,
@@ -133,7 +137,7 @@ const Onboarding: React.FC = () => {
             });
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-            setDisplayName(''); setInternalName(''); setEmployees([]); setTargetHost('');
+            setDisplayName(''); setInternalName(''); setEmployees([]);
         } catch (e) {
             console.error(e);
         } finally {
@@ -182,17 +186,28 @@ const Onboarding: React.FC = () => {
                 <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6">
                     <h2 className="text-lg font-medium mb-4">{t('onboarding.step2')}</h2>
                     
-                    <div className="mb-4">
-                        <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('onboarding.targetHost')}</label>
-                        <select value={targetHost} onChange={e => setTargetHost(e.target.value)} className="w-full md:w-1/2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm">
-                            <option value="">{t('admin.selectServerType')}</option>
-                            {hosts.map(h => <option key={h.id} value={h.hostname}>{h.hostname}</option>)}
-                        </select>
-                    </div>
-
-                    <form onSubmit={handleAddEmployee} className="flex gap-2 mb-6 w-full md:w-1/2">
-                        <input value={tempFullName} onChange={e => setTempFullName(e.target.value)} placeholder={t('onboarding.fullName')} className="flex-1 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
-                        <button type="submit" className="bg-[var(--color-text)] text-[var(--color-background)] px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">{t('onboarding.addEmployee')}</button>
+                    <form onSubmit={handleAddEmployee} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div className="md:col-span-1">
+                            <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('onboarding.targetHost')}</label>
+                            <select required value={tempTargetHost} onChange={e => setTempTargetHost(e.target.value)} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm">
+                                <option value="">{t('admin.selectServerType')}</option>
+                                {hosts.map(h => <option key={h.id} value={h.hostname}>{h.hostname}</option>)}
+                            </select>
+                        </div>
+                        <div className="md:col-span-1">
+                            <label className="block text-sm text-[var(--color-text-muted)] mb-1">Rol</label>
+                            <select value={tempRole} onChange={e => setTempRole(e.target.value)} className="w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm">
+                                <option value="user">Kullanıcı</option>
+                                <option value="manager">Yönetici</option>
+                            </select>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm text-[var(--color-text-muted)] mb-1">{t('onboarding.fullName')}</label>
+                            <div className="flex gap-2">
+                                <input required value={tempFullName} onChange={e => setTempFullName(e.target.value)} placeholder={t('onboarding.fullName')} className="flex-1 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg px-4 py-2 outline-none focus:border-[var(--color-primary)] text-sm" />
+                                <button type="submit" className="bg-[var(--color-text)] text-[var(--color-background)] px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors shrink-0">{t('onboarding.addEmployee')}</button>
+                            </div>
+                        </div>
                     </form>
 
                     {employees.length > 0 && (
@@ -202,6 +217,8 @@ const Onboarding: React.FC = () => {
                                     <tr className="border-b border-[var(--color-border)]">
                                         <th className="pb-3 font-medium text-[var(--color-text)]">{t('onboarding.fullName')}</th>
                                         <th className="pb-3 font-medium text-[var(--color-text)]">{t('onboarding.winUsername')}</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">Rol</th>
+                                        <th className="pb-3 font-medium text-[var(--color-text)]">Sunucu</th>
                                         <th className="pb-3 text-right"></th>
                                     </tr>
                                 </thead>
@@ -210,6 +227,8 @@ const Onboarding: React.FC = () => {
                                         <tr key={idx} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-background)]/50 transition-colors">
                                             <td className="py-3 text-[var(--color-text)] font-medium">{emp.fullName}</td>
                                             <td className="py-3 font-mono">{emp.windowsUsername}</td>
+                                            <td className="py-3">{emp.role === 'manager' ? 'Yönetici' : 'Kullanıcı'}</td>
+                                            <td className="py-3">{emp.targetHost}</td>
                                             <td className="py-3 text-right">
                                                 <button onClick={() => removeEmployee(idx)} className="text-red-400 hover:text-red-300 font-medium px-2 py-1 bg-red-400/10 rounded">Sil</button>
                                             </td>
@@ -276,7 +295,7 @@ const Onboarding: React.FC = () => {
                         {success && <span className="text-emerald-500 text-sm font-medium">{t('common.success')}!</span>}
                         <button 
                             onClick={handleSubmit}
-                            disabled={loading || !internalName || employees.length === 0 || !targetHost}
+                            disabled={loading || !internalName || employees.length === 0}
                             className="bg-emerald-600/10 text-emerald-500 border border-emerald-500/20 px-6 py-2 rounded-lg font-medium hover:bg-emerald-600/20 disabled:opacity-50 transition-colors"
                         >
                             {loading ? '...' : t('onboarding.submit')}
