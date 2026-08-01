@@ -56,6 +56,17 @@ func main() {
 
 		log.Println("Connected to Broker Gateway.")
 
+		// Keep-alive ping routine
+		go func(conn *websocket.Conn) {
+			ticker := time.NewTicker(30 * time.Second)
+			defer ticker.Stop()
+			for range ticker.C {
+				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					return
+				}
+			}
+		}(c)
+
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
